@@ -25,7 +25,7 @@
                 <configuration>
                     <scanIntervalSeconds>10</scanIntervalSeconds>
                     <webApp>
-                        <contextPath>/app</contextPath>
+                        <contextPath>/login</contextPath>
                     </webApp>
                 </configuration>
             </plugin>
