@@ -1,7 +1,6 @@
 package org.example;
 
-import accounts.AccountService;
-
+import accounts.UsersDB;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -9,8 +8,8 @@ import javax.servlet.annotation.WebListener;
 @WebListener
 public class AppContextListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
-        AccountService service = new AccountService();
-        sce.getServletContext().setAttribute("AS", service);
+        UsersDB usersDB = new UsersDB();
+        sce.getServletContext().setAttribute("DB", usersDB);
     }
 }
 

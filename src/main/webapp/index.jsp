@@ -17,13 +17,6 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            text-decoration: none;
-            background-color: #f44336;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-family: sans-serif;
         }
 
         .logout-link:hover {

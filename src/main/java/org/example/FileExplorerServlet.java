@@ -21,24 +21,26 @@ public class FileExplorerServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+
+        if(session == null){
+            response.sendRedirect("login");
+            return;
+        }
+
+        if(session.getAttribute("user") == null){
+            response.sendRedirect("login");
+            return;
+        }
+
         String requestedPath = request.getParameter("path");
         String currentPath;
         String currentTime = LocalDateTime.now().toString();
-        HttpSession session = request.getSession(false);
+
         UserProfile user = (UserProfile) session.getAttribute("user");
         String userPathRoot = "C:/Users/user/Desktop/javaTest/" + user.getLogin();
 
-        if(session.getAttribute("user") == null){
-            response.sendRedirect("/login.jsp");
-            return;
-        }
-        if(!requestedPath.startsWith("C:/Users/user/Desktop/javaTest/")){
-            currentPath = "C:/Users/user/Desktop/javaTest/" + user.getLogin();
-        }
-
-        String pathToCheck = requestedPath.replace("C:/Users/user/Desktop/javaTest", "");
-
-        if(!pathToCheck.startsWith("/" + user.getLogin())){
+        if(!requestedPath.startsWith("C:/Users/user/Desktop/javaTest/" + user.getLogin())){
             currentPath = "C:/Users/user/Desktop/javaTest/" + user.getLogin();
         }
         else{

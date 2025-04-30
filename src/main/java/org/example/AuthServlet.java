@@ -1,10 +1,13 @@
 package org.example;
 
-import accounts.AccountService;
+
 import accounts.UserProfile;
+import accounts.UsersDB;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
+import java.io.File;
 import java.io.IOException;
 
 @WebServlet("/login")
@@ -28,39 +31,45 @@ public class AuthServlet extends HttpServlet {
         String password = req.getParameter("password");
         String email = req.getParameter("email");
         String action = req.getParameter("action");
-        AccountService service = (AccountService) getServletContext().getAttribute("AS");
+        UsersDB usersDB = (UsersDB) getServletContext().getAttribute("DB");
         HttpSession session = req.getSession(true);
 
         if (login == null || password == null || action == null) {
-            resp.sendRedirect("login.jsp");
+            resp.sendRedirect("login");
             return;
         }
 
         if (action.equals("register")) {
             UserProfile newUser = new UserProfile(login, password, email);
             session.setAttribute("user", newUser);
-            service.addNewUser(newUser);
+            int rows = usersDB.setNewUser(newUser);
+
+            if(rows == -2){
+                resp.sendRedirect("login");
+                return;
+            }
+
             String userHome = "C:\\Users\\user\\Desktop\\javaTest\\".replace("\\", "/") + login;
+
+            File folder = new File(userHome);
+
+            if(!folder.exists()){
+                folder.mkdirs();
+            }
 
             resp.sendRedirect("files?path=" + userHome);
             return;
         }
 
         if(action.equals("login")) {
-            if(service.getUserByLogin(login) != null){
-                UserProfile user = service.getUserByLogin(login);
-                if(password.equals(user.getPassword())){
-                    String userHome = "C:\\Users\\user\\Desktop\\javaTest\\".replace("\\", "/") + login;
-
-                    session.setAttribute("user", user);
-                    resp.sendRedirect("files?path=" + userHome);
-                }
-                else{
-                    resp.sendRedirect("login.jsp");
-                }
+            if(usersDB.getPassword(login) != null && usersDB.getPassword(login).equals(password)){
+                String userHome = "C:\\Users\\user\\Desktop\\javaTest\\".replace("\\", "/") + login;
+                UserProfile user = new UserProfile(login, password, email);
+                session.setAttribute("user", user);
+                resp.sendRedirect("files?path=" + userHome);
             }
             else{
-                resp.sendRedirect("login.jsp");
+                resp.sendRedirect("login");
             }
         }
     }

@@ -13,11 +13,5 @@
     <button type="submit" name="action" value="login">Login</button>
     <button type="submit" name="action" value="register">Register</button>
 </form>
-
-<% String error = (String) request.getAttribute("error");
-   if (error != null) { %>
-    <p style="color:red;"><%= error %></p>
-<% } %>
-
 </body>
 </html>
