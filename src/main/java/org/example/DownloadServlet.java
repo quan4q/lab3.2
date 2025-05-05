@@ -1,5 +1,8 @@
 package org.example;
 
+import accounts.UserProfile;
+import accounts.UsersDB;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -16,15 +19,24 @@ public class DownloadServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
+        UsersDB usersDB = (UsersDB) getServletContext().getAttribute("DB");
+        Long uid = null;
 
-        if(session == null){
+        if(session != null){
+            uid = (Long) session.getAttribute("uid");
+        }
+        else{
             response.sendRedirect("login");
-            return;
         }
 
-        if(session.getAttribute("user") == null){
+        if (uid != null) {
+            UserProfile user = usersDB.getUser(uid);
+            String userHome = "C:/Users/user/Desktop/javaTest/" + user.getLogin();
+            if(!request.getParameter("file").startsWith(userHome)){
+                response.sendRedirect("login");
+            }
+        } else {
             response.sendRedirect("login");
-            return;
         }
 
         String filePath = request.getParameter("file");

@@ -15,9 +15,18 @@ public class AuthServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        UserProfile user = (session != null) ? (UserProfile) session.getAttribute("user") : null;
+        UsersDB usersDB = (UsersDB) getServletContext().getAttribute("DB");
+        Long uid = null;
 
-        if (user != null) {
+        if(session != null){
+            uid = (Long) session.getAttribute("uid");
+        }
+        else{
+            resp.sendRedirect("login");
+        }
+
+        if (uid != null) {
+            UserProfile user = usersDB.getUser(uid);
             String userHome = "C:/Users/user/Desktop/javaTest/" + user.getLogin();
             resp.sendRedirect("files?path=" + userHome);
         } else {
@@ -40,14 +49,16 @@ public class AuthServlet extends HttpServlet {
         }
 
         if (action.equals("register")) {
-            UserProfile newUser = new UserProfile(login, password, email);
-            session.setAttribute("user", newUser);
-            int rows = usersDB.setNewUser(newUser);
+            UserProfile newUser = usersDB.getUser(login);
 
-            if(rows == -2){
-                resp.sendRedirect("login");
+            if(newUser != null){
+                resp.sendRedirect(login);
                 return;
             }
+
+            session.setAttribute("user", newUser);
+            long uid = usersDB.setNewUser(login, password, email);
+            session.setAttribute("uid", uid);
 
             String userHome = "C:\\Users\\user\\Desktop\\javaTest\\".replace("\\", "/") + login;
 
@@ -62,10 +73,11 @@ public class AuthServlet extends HttpServlet {
         }
 
         if(action.equals("login")) {
-            if(usersDB.getPassword(login) != null && usersDB.getPassword(login).equals(password)){
+            UserProfile user = usersDB.getUser(login);
+
+            if(user != null || user.getPassword().equals(password)){
                 String userHome = "C:\\Users\\user\\Desktop\\javaTest\\".replace("\\", "/") + login;
-                UserProfile user = new UserProfile(login, password, email);
-                session.setAttribute("user", user);
+                session.setAttribute("uid", user.getId());
                 resp.sendRedirect("files?path=" + userHome);
             }
             else{

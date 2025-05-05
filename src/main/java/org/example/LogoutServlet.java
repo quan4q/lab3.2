@@ -19,12 +19,12 @@ public class LogoutServlet extends HttpServlet {
             return;
         }
 
-        if(session.getAttribute("user") == null){
+        if(session.getAttribute("uid") == null){
             response.sendRedirect("login");
             return;
         }
 
-        session.removeAttribute("user");
+        session.removeAttribute("uid");
 
         response.sendRedirect(request.getContextPath() + "/login");
     }

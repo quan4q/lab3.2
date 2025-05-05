@@ -1,6 +1,7 @@
 package org.example;
 
 import accounts.UserProfile;
+import accounts.UsersDB;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -22,22 +23,28 @@ public class FileExplorerServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-
-        if(session == null){
-            response.sendRedirect("login");
-            return;
-        }
-
-        if(session.getAttribute("user") == null){
-            response.sendRedirect("login");
-            return;
-        }
-
+        UsersDB usersDB = (UsersDB) getServletContext().getAttribute("DB");
+        Long uid = null;
         String requestedPath = request.getParameter("path");
         String currentPath;
         String currentTime = LocalDateTime.now().toString();
 
-        UserProfile user = (UserProfile) session.getAttribute("user");
+        if(session != null){
+            uid = (Long) session.getAttribute("uid");
+        }
+        else{
+            response.sendRedirect("login");
+        }
+
+        if (uid != null) {
+            UserProfile user = usersDB.getUser(uid);
+            String userHome = "C:/Users/user/Desktop/javaTest/" + user.getLogin();
+            currentPath = userHome;
+        } else {
+            response.sendRedirect("login");
+        }
+
+        UserProfile user = usersDB.getUser(uid);
         String userPathRoot = "C:/Users/user/Desktop/javaTest/" + user.getLogin();
 
         if(!requestedPath.startsWith("C:/Users/user/Desktop/javaTest/" + user.getLogin())){

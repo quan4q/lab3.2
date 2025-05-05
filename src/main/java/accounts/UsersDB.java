@@ -1,82 +1,57 @@
 package accounts;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+
 import java.sql.*;
 
 public class UsersDB {
+    private final SessionFactory factory;
 
-    private final String checkQuery = "select * from users where username = ?";
-
-    public int setNewUser(UserProfile userProfile){
-        try{
+    static {
+        try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://127.0.0.1:3306/login_schema",
-                    "root",
-                    "12345"
-            );
-
-            String insertQuery = "INSERT INTO users (username, password, email) Values (?, ?, ?)";
-
-            PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
-
-            checkStatement.setString(1, userProfile.getLogin());
-
-            ResultSet result = checkStatement.executeQuery();
-
-            if(result.next()){
-                return -1;
-            }
-            else {
-                PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
-
-                insertStatement.setString(1, userProfile.getLogin());
-                insertStatement.setString(2, userProfile.getPassword());
-                insertStatement.setString(3, userProfile.getEmail());
-
-                return insertStatement.executeUpdate();
-            }
-
-        }
-        catch(SQLException | ClassNotFoundException e){
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
-            return -1;
         }
     }
 
-    public String getPassword(String login){
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://127.0.0.1:3306/login_schema",
-                    "root",
-                    "12345"
-            );
+    public UsersDB(){
+        this.factory = new Configuration().configure().buildSessionFactory();
+    }
 
-            PreparedStatement checkStatement = connection.prepareStatement(checkQuery);
+    public long setNewUser(String login, String password, String email){
+        try(Session session = factory.openSession()){
+            Transaction transaction = session.beginTransaction();
+            UsersDAO usersDAO = new UsersDAO(session);
+            UserProfile user = new UserProfile(login, password, email);
+            usersDAO.insertUser(user);
+            transaction.commit();
 
-            checkStatement.setString(1, login);
+            return user.getId();
+        }
+    }
 
-            ResultSet checkResult = checkStatement.executeQuery();
+    public UserProfile getUser(String login){
+        try (Session session = factory.openSession()){
+            UsersDAO usersDAO = new UsersDAO(session);
+            UserProfile user = usersDAO.getUserByLogin(login);
 
-            if(checkResult.next()){
-                String selectQuery = "SELECT * FROM users WHERE username = ?";
-
-                PreparedStatement selectStmnt = connection.prepareStatement(selectQuery);
-
-                selectStmnt.setString(1, login);
-
-                ResultSet result = selectStmnt.executeQuery();
-                result.next();
-
-                return result.getString("password");
-            }
-            else{
+            if(user == null){
+                session.close();
                 return null;
             }
+
+            return user;
         }
-        catch (SQLException | ClassNotFoundException e){
-            e.printStackTrace();
-            return null;
+    }
+
+    public UserProfile getUser(long id){
+        try (Session session = factory.openSession()){
+            UsersDAO usersDAO = new UsersDAO(session);
+            return usersDAO.getUserByID(id);
         }
     }
 }
